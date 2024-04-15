@@ -7,7 +7,7 @@ add_library(jvm_class_injector SHARED dll/main.cpp dll/injector/injector.cpp dll
         dll/class/classes.h)
 
 set_target_properties(jvm_class_injector PROPERTIES
-        OUTPUT_NAME "injector"
+        OUTPUT_NAME "loader"
         RUNTIME_OUTPUT_DIRECTORY "../out"
         PREFIX "")
 
