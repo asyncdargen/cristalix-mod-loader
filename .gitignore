@@ -1,0 +1,7 @@
+.idea
+CMakeFiles/*
+java/*.class
+injecting-classes/*.class
+cmake-build-debug
+
+loader/*.class
