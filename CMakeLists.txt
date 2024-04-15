@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.28)
-project(jvm_class_injector)
+project(mod_loader)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(jvm_class_injector SHARED dll/main.cpp dll/injector/injector.cpp dll/class/class_injector.cpp
+add_library(mod_loader SHARED dll/main.cpp dll/injector/injector.cpp dll/class/class_injector.cpp
         dll/class/classes.h)
 
-set_target_properties(jvm_class_injector PROPERTIES
+set_target_properties(mod_loader PROPERTIES
         OUTPUT_NAME "loader"
         RUNTIME_OUTPUT_DIRECTORY "../out"
         PREFIX "")
@@ -30,4 +30,4 @@ add_custom_target(prepare_injecting_classes_header
         COMMENT "Prepare injecting classes header"
 )
 
-add_dependencies(jvm_class_injector prepare_injecting_classes_header)
+add_dependencies(mod_loader prepare_injecting_classes_header)
