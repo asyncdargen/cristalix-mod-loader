@@ -76,7 +76,6 @@ jobject GetClassLoader(JNIEnv *env) {
     return class_loader;
 }
 
-
 void InjectClasses(JNIEnv *env) {
     auto class_loader = GetClassLoader(env);
     if (class_loader == nullptr) {
@@ -90,8 +89,11 @@ void InjectClasses(JNIEnv *env) {
 
         auto defined_class = env->DefineClass(nullptr, class_loader, class_bytes, class_size);
         if (defined_class == nullptr) {
-            Debug(L"Couldn`t define class");
-            continue;
+            defined_class = env->FindClass("CristalixModLoader");
+            if (defined_class == nullptr) {
+                Debug(L"Couldn`t define class");
+                continue;
+            }
         }
 
         auto inject_method = env->GetStaticMethodID(defined_class, "inject", "()V");

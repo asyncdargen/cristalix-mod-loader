@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import static java.lang.Enum.valueOf;
@@ -30,16 +31,35 @@ public class CristalixModLoader {
 
     private static final String
             MOD_LOADER_CLASS_NAME = "teWrBzj",
-            MOD_LOADER_LOAD_METHOD = "gWjrZHr";
+            MOD_LOADER_LOAD_METHOD = "gWjrZHr",
+            MOD_LOADER_UNLOAD_METHOD = "unload";
 
-    private static final String MOD_CLASS_NAME = "SWRgULV";
+    private static final String
+        MOD_CLASS_NAME = "SWRgULV";
 
     private static final String
             CLIENT_API_CLASS_NAME = "dev.xdark.clientapi.ClientApi",
+            MOD_MAIN_CLASS_NAME = "dev.xdark.clientapi.entry.ModMain",
             SIDE_CLASS_NAME = "dev.xdark.clientapi.Side";
+
+
+    private static final List<Object> loadedMods = new ArrayList<>();
 
     public static void inject() throws Throwable {
         System.out.println("Cristalix Mod Loader by dargen (https://github.com/asyncdargen)");
+        if (!loadedMods.isEmpty()) {
+            System.out.println("Loaded mods " + loadedMods.size() + ", unloading...");
+
+            for (Object mod : loadedMods) {
+                try {
+                    unload(mod);
+                } catch(Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+            loadedMods.clear();
+        }
+
         List<Path> modFiles = Files.list(Paths.get("C:/cristalix-mods"))
                 .filter(file -> file.getFileName().toString().endsWith(".jar"))
                 .collect(Collectors.toList());
@@ -52,7 +72,8 @@ public class CristalixModLoader {
             for (Path mod : modFiles) {
                 try (InputStream is = Files.newInputStream(mod)) {
                     System.out.println("Loading mod " + mod);
-                    load(modManager, clientApi, is, null, true);
+                    Object loadedMod = load(modManager, clientApi, is, null, false); //flag - don`t override already loaded mod
+                    loadedMods.add(loadedMod);
                 } catch (Throwable t) {
                     System.out.println("Error while mod loading " + mod);
                     t.printStackTrace();
@@ -61,11 +82,11 @@ public class CristalixModLoader {
         });
     }
 
-    public static Object getMinecraft() throws Throwable {
+    private static Object getMinecraft() throws Throwable {
         return MINECRAFT_INSTANCE_MH.invoke();
     }
 
-    public static Object getModManager(Object minecraft) throws Throwable {
+    private static Object getModManager(Object minecraft) throws Throwable {
         return MOD_MANAGER_INSTANCE_MH.invoke(minecraft);
     }
 
@@ -73,12 +94,16 @@ public class CristalixModLoader {
         return CLIENT_API_INSTANCE_MH.invoke(modManager);
     }
 
-    public static Object load(Object modManager, Object clientApi, InputStream inputStream,
+    private static Object load(Object modManager, Object clientApi, InputStream inputStream,
                               Object side, boolean flag) throws Throwable {
         return LOAD_MOD_MH.invoke(modManager, clientApi, inputStream, side, flag);
     }
 
-    public static void postMainThread(Object minecraft, Runnable runnable) throws Throwable {
+    private static void unload(Object mod) throws Throwable {
+        UNLOAD_MOD_MH.invoke(mod);
+    }
+
+    private static void postMainThread(Object minecraft, Runnable runnable) throws Throwable {
         POST_MAIN_THREAD_MH.invoke(minecraft, runnable);
     }
 
@@ -103,6 +128,7 @@ public class CristalixModLoader {
 
     private static MethodHandle POST_MAIN_THREAD_MH;
     private static MethodHandle LOAD_MOD_MH;
+    private static MethodHandle UNLOAD_MOD_MH;
 
 
     private static void loadMethodHandles() throws Throwable {
@@ -114,6 +140,8 @@ public class CristalixModLoader {
                 MethodType.methodType(Class.forName("com.google.common.util.concurrent.ListenableFuture"), Runnable.class));
         LOAD_MOD_MH = LOOKUP.findStatic(MOD_LOADER_CLASS, MOD_LOADER_LOAD_METHOD,
                 MethodType.methodType(MOD_CLASS, MOD_MANAGER_CLASS, CLIENT_API_CLASS, InputStream.class, SIDE_CLASS, boolean.class));
+        UNLOAD_MOD_MH = LOOKUP.findStatic(MOD_LOADER_CLASS, MOD_LOADER_UNLOAD_METHOD,
+                MethodType.methodType(void.class, MOD_MAIN_CLASS));
     }
 
     private static Class<?> MINECRAFT_CLASS;
@@ -122,6 +150,7 @@ public class CristalixModLoader {
     private static Class<?> MOD_CLASS;
 
     private static Class<?> CLIENT_API_CLASS;
+    private static Class<?> MOD_MAIN_CLASS;
     private static Class<?> SIDE_CLASS;
 
     private static void loadClasses() throws Throwable {
@@ -131,6 +160,7 @@ public class CristalixModLoader {
         MOD_CLASS = Class.forName(MOD_CLASS_NAME);
 
         CLIENT_API_CLASS = Class.forName(CLIENT_API_CLASS_NAME);
+        MOD_MAIN_CLASS = Class.forName(MOD_MAIN_CLASS_NAME);
         SIDE_CLASS = Class.forName(SIDE_CLASS_NAME);
     }
 
