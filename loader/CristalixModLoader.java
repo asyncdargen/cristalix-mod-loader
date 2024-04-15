@@ -39,7 +39,7 @@ public class CristalixModLoader {
             SIDE_CLASS_NAME = "dev.xdark.clientapi.Side";
 
     public static void inject() throws Throwable {
-        System.out.println("Cristalix Mod Injector by dargen (https://github.com/asyncdargen)");
+        System.out.println("Cristalix Mod Loader by dargen (https://github.com/asyncdargen)");
         List<Path> modFiles = Files.list(Paths.get("C:/cristalix-mods"))
                 .filter(file -> file.getFileName().toString().endsWith(".jar"))
                 .collect(Collectors.toList());
