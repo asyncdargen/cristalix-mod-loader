@@ -60,9 +60,9 @@ public class CristalixModLoader {
             loadedMods.clear();
         }
 
-        List<Path> modFiles = Files.list(Paths.get("C:/cristalix-mods"))
-                .filter(file -> file.getFileName().toString().endsWith(".jar"))
-                .collect(Collectors.toList());
+        List<Path> modFiles = new ArrayList<>();
+        collectMods(modFiles, Paths.get("C:/cristalix-mods"));
+        collectMods(modFiles, Paths.get("C:/Xenoceal/mods"));
 
         Object minecraft = getMinecraft();
         Object modManager = getModManager(minecraft);
@@ -80,6 +80,14 @@ public class CristalixModLoader {
                 }
             }
         });
+    }
+
+    private static void collectMods(List<Path> paths, Path folder) throws Throwable {
+        if (!Files.exists(folder)) return;
+
+        Files.list(folder)
+            .filter(file -> file.getFileName().toString().endsWith(".jar"))
+            .forEach(paths::add);
     }
 
     private static Object getMinecraft() throws Throwable {
