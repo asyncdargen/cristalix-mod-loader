@@ -11,7 +11,7 @@ DWORD WINAPI InjectorThread(LPVOID module_lpvoid) {
 
 BOOL APIENTRY DllMain(HMODULE module, DWORD ul_reason_for_call, LPVOID lpReserved) {
     if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
-        CreateThread(NULL, 0, &InjectorThread, module, 0, NULL);
+        CreateThread(nullptr, 0, &InjectorThread, module, 0, nullptr);
     }
 
     return TRUE;
