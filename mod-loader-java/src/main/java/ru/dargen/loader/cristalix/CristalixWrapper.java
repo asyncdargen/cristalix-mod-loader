@@ -10,6 +10,8 @@ import java.lang.invoke.MethodType;
 import static ru.dargen.loader.cristalix.CristalixMappings.*;
 import static ru.dargen.loader.util.Access.LOOKUP;
 
+
+//TODO: Make it with original cristalix dependencies
 @UtilityClass
 public class CristalixWrapper {
 
