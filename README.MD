@@ -8,3 +8,6 @@ ___
 + Launch Cristalix Launcher and Client
 + After client loading inject loader.dll and wait *BEEEP\* (you can use [cristalix-injector.exe](https://github.com/asyncdargen/cristalix-injector/raw/master/out/injector.exe))
 + Done!
+___
+### For mod coders
+If you using not obfuscated cristalix dependencies - add `mappings=true` to `mod.properties'
