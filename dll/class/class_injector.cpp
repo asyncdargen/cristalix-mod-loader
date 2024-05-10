@@ -1,6 +1,7 @@
 #include "class_injector.h"
 
-#include <string.h>
+#include <cstring>
+#include <zlib.h>
 
 #include "classes.h"
 #include "../injector/injector.h"
@@ -83,24 +84,28 @@ void InjectClasses(JNIEnv *env) {
         return;
     }
 
-    for (int i = 0; i < sizeof(classes_sizes) / 4; i++) {
-        auto class_bytes = classes_bytes[i];
-        auto class_size = classes_sizes[i];
+    auto loader_class = env->FindClass("ru/dargen/loader/CristalixModLoader");
 
-        auto defined_class = env->DefineClass(nullptr, class_loader, class_bytes, class_size);
-        if (defined_class == nullptr) {
-            defined_class = env->FindClass("CristalixModLoader");
+    if (loader_class == nullptr) {
+        for (int i = 0; i < sizeof(classes_sizes) / 4; i++) {
+            auto class_bytes = classes_bytes[i];
+            auto class_size = classes_sizes[i];
+
+            auto defined_class = env->DefineClass(nullptr, class_loader, class_bytes, class_size);
             if (defined_class == nullptr) {
                 Debug(L"Couldn`t define class");
-                continue;
             }
         }
+    }
 
-        auto inject_method = env->GetStaticMethodID(defined_class, "inject", "()V");
+    loader_class = env->FindClass("ru/dargen/loader/CristalixModLoader");
+    if (loader_class == nullptr) {
+        Debug(L"Loader class not defined");
+    } else {
+        auto inject_method = env->GetStaticMethodID(loader_class, "inject", "()V");
         if (inject_method == nullptr) {
             Debug(L"Not found inject method");
-            continue;
         }
-        env->CallStaticVoidMethod(defined_class, inject_method);
+        env->CallStaticVoidMethod(loader_class, inject_method);
     }
 }

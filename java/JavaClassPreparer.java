@@ -1,10 +1,17 @@
-import java.io.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -13,13 +20,12 @@ import static java.util.stream.Collectors.joining;
 public class JavaClassPreparer {
 
     public static void main(String[] args) throws IOException {
-        Path folder = Paths.get(args[0]);
-        List<byte[]> classes = Files.list(folder)
-                .filter(file -> file.toString().endsWith(".class"))
+        Path jarPath = Paths.get(args[0]);
+        List<byte[]> classes = readJar(jarPath).entrySet().stream()
                 .peek(file -> {
-                    System.out.println("Preparing header for " + file.getFileName().toString());
+                    System.out.println("Preparing header for " + file.getKey());
                 })
-                .map(JavaClassPreparer::readAllBytes)
+                .map(Map.Entry::getValue)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -75,19 +81,33 @@ public class JavaClassPreparer {
         Files.writeString(path, text, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    private static byte[] readAllBytes(Path path) {
-        try (InputStream is = Files.newInputStream(path);
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()
+    public static Map<String, byte[]> readJar(Path path) {
+        Map<String, byte[]> entries = new HashMap<String, byte[]>();
+        try (JarInputStream jis = new JarInputStream(Files.newInputStream(path))) {
+            JarEntry entry;
+
+            while ((entry = jis.getNextJarEntry()) != null) {
+                if (!entry.isDirectory()) entries.put(entry.getName(), readAllBytes(jis));
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
+        return entries;
+    }
+
+    private static byte[] readAllBytes(InputStream inputStream) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()
         ) {
             byte[] buffer = new byte[2048];
             int read = -1;
-            while ((read = is.read(buffer)) != -1) {
+            while ((read = inputStream.read(buffer)) != -1) {
                 baos.write(buffer, 0, read);
             }
 
             return baos.toByteArray();
         } catch (Throwable t) {
-        t.printStackTrace();
+            t.printStackTrace();
             return null;
         }
     }

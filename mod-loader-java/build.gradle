@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.dargen'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'com.google.code.gson:gson:2.10.1'
+    compileOnly 'org.ow2.asm:asm:9.1'
+    compileOnly 'org.ow2.asm:asm-tree:9.1'
+
+    annotationProcessor compileOnly('org.projectlombok:lombok:1.18.30')
+}
+
+jar {
+    destinationDirectory.set(file("out"))
+
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    from configurations.runtimeClasspath.collect(project.&zipTree)
+}
